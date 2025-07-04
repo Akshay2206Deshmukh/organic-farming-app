@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Organic Farming Manager</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px 40px;
+    background: #f7faf5;
+    color: #2e3d2f;
+  }
+
+  h1 {
+    text-align: center;
+    color: #3a5a40;
+    margin-bottom: 30px;
+    font-weight: 700;
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-between;
+  }
+
+  .section {
+    background: white;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+    flex: 1 1 280px;
+    min-width: 280px;
+  }
+
+  .section h2 {
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #4a6b3b;
+    border-bottom: 2px solid #a3c293;
+    padding-bottom: 8px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border: 2px solid #d4e2d4;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  input[type="number"]:focus,
+  select:focus {
+    outline: none;
+    border-color: #7bb26e;
+    background-color: #f2f7f2;
+  }
+
+  button {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    background: #6ca04c;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 10px rgb(108 160 76 / 0.5);
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #5a8d3d;
+  }
+
+  pre {
+    background: #e9f1e7;
+    padding: 15px;
+    border-radius: 12px;
+    max-height: 320px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    color: #2d3e1b;
+  }
+
+  /* Responsive layout */
+  @media (max-width: 750px) {
+    .container {
+      flex-direction: column;
+    }
+  }
+
+  /* Success/error message styling */
+  .message {
+    margin-top: -10px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+    display: none;
+  }
+
+  .message.success {
+    background-color: #d4edda;
+    color: #27632a;
+  }
+
+  .message.error {
+    background-color: #f8d7da;
+    color: #8a1c1c;
+  }
+</style>
+</head>
+<body>
+
+<h1>Organic Farming Manager</h1>
+
+<div class="container">
+  <section class="section" id="farmSection">
+    <h2>Add Farm</h2>
+    <label for="farmName">Farm Name</label>
+    <input id="farmName" type="text" placeholder="e.g. Sunny Acres" />
+    
+    <label for="farmLocation">Location</label>
+    <input id="farmLocation" type="text" placeholder="e.g. Texas, USA" />
+    
+    <label for="farmOwner">Owner</label>
+    <input id="farmOwner" type="text" placeholder="e.g. Alice Johnson" />
+    
+    <button id="addFarmBtn">Add Farm</button>
+    <div class="message" id="farmMsg"></div>
+  </section>
+
+  <section class="section" id="cropSection">
+    <h2>Add Crop to Farm</h2>
+    <label for="farmSelect">Select Farm</label>
+    <select id="farmSelect">
+      <option value="">-- Select Farm --</option>
+    </select>
+
+    <label for="cropName">Crop Name</label>
+    <input id="cropName" type="text" placeholder="e.g. Tomato" />
+    
+    <label for="plantingDate">Planting Date</label>
+    <input id="plantingDate" type="date" />
+    
+    <button id="addCropBtn">Add Crop</button>
+    <div class="message" id="cropMsg"></div>
+  </section>
+
+  <section class="section" id="updateSection">
+    <h2>Update Crop Growth Stage</h2>
+    <label for="farmSelect2">Select Farm</label>
+    <select id="farmSelect2">
+      <option value="">-- Select Farm --</option>
+    </select>
+
+    <label for="cropSelect">Select Crop</label>
+    <select id="cropSelect">
+      <option value="">-- Select Crop --</option>
+    </select>
+
+    <label for="growthStage">Growth Stage</label>
+    <select id="growthStage">
+      <option value="Seedling">Seedling</option>
+      <option value="Vegetative">Vegetative</option>
+      <option value="Flowering">Flowering</option>
+      <option value="Mature">Mature</option>
+    </select>
+
+    <button id="updateStageBtn">Update Stage</button>
+    <div class="message" id="updateMsg"></div>
+  </section>
+</div>
+
+<section class="section" style="margin-top: 40px;">
+  <h2>All Farms & Crops</h2>
+  <pre id="output">No data yet.</pre>
+</section>
+
+<script>
+  const farms = [];
+
+  // DOM Elements
+  const farmNameInput = document.getElementById('farmName');
+  const farmLocationInput = document.getElementById('farmLocation');
+  const farmOwnerInput = document.getElementById('farmOwner');
+  const farmMsg = document.getElementById('farmMsg');
+
+  const farmSelect = document.getElementById('farmSelect');
+  const cropNameInput = document.getElementById('cropName');
+  const plantingDateInput = document.getElementById('plantingDate');
+  const cropMsg = document.getElementById('cropMsg');
+
+  const farmSelect2 = document.getElementById('farmSelect2');
+  const cropSelect = document.getElementById('cropSelect');
+  const growthStageSelect = document.getElementById('growthStage');
+  const updateMsg = document.getElementById('updateMsg');
+
+  const output = document.getElementById('output');
+
+  // Utility functions for messages
+  function showMessage(element, msg, type = 'success') {
+    element.textContent = msg;
+    element.className = `message ${type}`;
+    element.style.display = 'block';
+    setTimeout(() => {
+      element.style.display = 'none';
+    }, 4000);
+  }
+
+  // Add farm
+  document.getElementById('addFarmBtn').addEventListener('click', () => {
+    const name = farmNameInput.value.trim();
+    const location = farmLocationInput.value.trim();
+    const owner = farmOwnerInput.value.trim();
+
+    if (!name || !location || !owner) {
+      showMessage(farmMsg, 'Please fill all farm details.', 'error');
+      return;
+    }
+
+    farms.push({
+      id: farms.length + 1,
+      name,
+      location,
+      owner,
+      crops: []
+    });
+
+    farmNameInput.value = '';
+    farmLocationInput.value = '';
+    farmOwnerInput.value = '';
+
+    updateFarmSelectors();
+    showMessage(farmMsg, `Farm "${name}" added!`);
+    renderData();
+  });
+
+  // Update farm dropdown selectors
+  function updateFarmSelectors() {
+    // Clear selects except placeholder option
+    [farmSelect, farmSelect2].forEach(select => {
+      select.innerHTML = '<option value="">-- Select Farm --</option>';
+      farms.forEach(farm => {
+        const option = document.createElement('option');
+        option.value = farm.id;
+        option.textContent = farm.name;
+        select.appendChild(option);
+      });
+    });
+    updateCropSelector();
+  }
+
+  // Add crop to farm
+  document.getElementById('addCropBtn').addEventListener('click', () => {
+    const farmId = Number(farmSelect.value);
+    const cropName = cropNameInput.value.trim();
+    const plantingDate = plantingDateInput.value;
+
+    if (!farmId) {
+      showMessage(cropMsg, 'Please select a farm.', 'error');
+      return;
+    }
+    if (!cropName || !plantingDate) {
+      showMessage(cropMsg, 'Please fill all crop details.', 'error');
+      return;
+    }
+
+    const farm = farms.find(f => f.id === farmId);
+    if (!farm) {
+      showMessage(cropMsg, 'Farm not found.', 'error');
+      return;
+    }
+
+    farm.crops.push({
+      id: farm.crops.length + 1,
+      name: cropName,
+      plantingDate,
+      growthStage: 'Seedling'
+    });
+
+    cropNameInput.value = '';
+    plantingDateInput.value = '';
+
+    updateCropSelector();
+    showMessage(cropMsg, `Crop "${cropName}" added to "${farm.name}"!`);
+    renderData();
+  });
+
+  // Update crop dropdown based on selected farm (for update section)
+  farmSelect2.addEventListener('change', updateCropSelector);
+
+  function updateCropSelector() {
+    cropSelect.innerHTML = '<option value="">-- Select Crop --</option>';
+    const farmId = Number(farmSelect2.value);
+    if (!farmId) return;
+
+    const farm = farms.find(f => f.id === farmId);
+    if (!farm) return;
+
+    farm.crops.forEach(crop => {
+      const option = document.createElement('option');
+      option.value = crop.id;
+      option.textContent = `${crop.name} (Stage: ${crop.growthStage})`;
+      cropSelect.appendChild(option);
+    });
+  }
+
+  // Update crop growth stage
+  document.getElementById('updateStageBtn').addEventListener('click', () => {
+    const farmId = Number(farmSelect2.value);
+    const cropId = Number(cropSelect.value);
+    const newStage = growthStageSelect.value;
+
+    if (!farmId || !cropId) {
+      showMessage(updateMsg, 'Please select farm and crop.', 'error');
+      return;
+    }
+    if (!newStage) {
+      showMessage(updateMsg, 'Please select a growth stage.', 'error');
+      return;
+    }
+
+    const farm = farms.find(f => f.id === farmId);
+    if (!farm) {
+      showMessage(updateMsg, 'Farm not found.', 'error');
+      return;
+    }
+    const crop = farm.crops.find(c => c.id === cropId);
+    if (!crop) {
+      showMessage(updateMsg, 'Crop not found.', 'error');
+      return;
+    }
+
+    crop.growthStage = newStage;
+    updateCropSelector();
+    showMessage(updateMsg, `Growth stage updated to "${newStage}" for crop "${crop.name}".`);
+    renderData();
+  });
+
+  // Render all farms & crops data as JSON prettified
+  function renderData() {
+    if (farms.length === 0) {
+      output.textContent = 'No farms added yet.';
+      return;
+    }
+    output.textContent = JSON.stringify(farms, null, 2);
+  }
+
+  // Initial setup
+  updateFarmSelectors();
+  renderData();
+</script>
+
+</body>
+</html>
